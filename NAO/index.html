@@ -17,8 +17,7 @@ body {
   background:radial-gradient(circle at top,#1a1a1a,#000);
   font-family:Arial,Helvetica,sans-serif;
   color:#eee;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x:hidden;
 }
 
 canvas {
@@ -27,13 +26,40 @@ canvas {
   z-index:0;
 }
 
+/* ===== START OVERLAY ===== */
+.start-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, #111, #000);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.start-overlay button {
+  padding: 18px 36px;
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+  font-weight: bolder;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  50% { transform: scale(1.02); }
+}
+
+/* ===== CONTENT ===== */
 .wrapper {
   position: relative;
   z-index: 2;
-
   max-width: 720px;
-  width: calc(100% - 20px); /* 🔥 margen mínimo 10px por lado */
-
+  width: calc(100% - 20px);
   margin: 60px auto;
   background: linear-gradient(180deg,#1a1a1a,#0c0c0c);
   border-radius: 14px;
@@ -70,6 +96,10 @@ canvas {
   font-size:16px;
 }
 
+.typewriter {
+  white-space: pre-line;
+}
+
 .typewriter span {
   border-right:2px solid var(--gold);
   animation:blink .8s infinite;
@@ -85,7 +115,6 @@ canvas {
   margin:30px 0;
   text-align:center;
   font-size:22px;
-  letter-spacing:2px;
 }
 
 .selfdestruct {
@@ -115,6 +144,7 @@ canvas {
   border-top:1px solid #222;
 }
 
+/* ===== EXPLOSION ===== */
 .explosion {
   position:fixed;
   inset:0;
@@ -147,6 +177,8 @@ canvas {
   border:none;
   cursor:pointer;
 }
+
+/* ===== MUTE BUTTON ===== */
 #muteBtn {
   position: fixed;
   bottom: 20px;
@@ -159,36 +191,26 @@ canvas {
   padding: 10px 14px;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0,0,0,.7);
-  transition: transform .2s, opacity .2s;
 }
 
-#muteBtn:hover {
-  transform: scale(1.1);
-}
+#muteBtn.muted { opacity:.4; }
 
-#muteBtn.muted {
-  opacity: .4;
-}
-
-.typewriter {
-  white-space: pre-line;
-}
-.hidden {
-  visibility: hidden;
-}
-
+.hidden { visibility:hidden; }
 </style>
 </head>
 
 <body>
 
+<!-- START -->
+<div id="startOverlay" class="start-overlay">
+  <button id="startBtn">CLICK PARA DESENCRIPTAR MENSAJE</button>
+</div>
+
 <canvas id="gold"></canvas>
 
-<audio id="music" src="mission.mp3" loop autoplay muted preload="auto"></audio>
-<button id="muteBtn" aria-label="Silenciar música">
-    🔊
-</button>
+<audio id="music" src="mission.mp3" loop preload="auto"></audio>
+
+<button id="muteBtn">🔊</button>
 
 <div class="wrapper" id="wrapper">
   <div class="header">
@@ -219,120 +241,114 @@ canvas {
 </div>
 
 <script>
-// ===== MUSIC =====
+/* ===== START CONTROL ===== */
+const startBtn = document.getElementById("startBtn");
+const startOverlay = document.getElementById("startOverlay");
 const music = document.getElementById("music");
-let audioStarted = false;
+let started = false;
 
-function startAudio() {
-  if (audioStarted) return;
+startBtn.addEventListener("click", async () => {
+  if (started) return;
+  started = true;
 
-  const p = music.play();
-  if (p !== undefined) {
-    p.then(() => {
-      audioStarted = true;
-      cleanup();
-    }).catch(() => {});
-  }
-}
+  try {
+    music.muted = false;
+    await music.play();
+  } catch(e){}
 
-function cleanup() {
-  document.removeEventListener("wheel", startAudio);
-  document.removeEventListener("touchstart", startAudio);
-  document.removeEventListener("keydown", startAudio);
-  document.removeEventListener("click", startAudio);
-}
+  startOverlay.remove();
+  startTypewriter();
+  startCountdown();
+  startSelfDestruct();
+});
 
-document.addEventListener("wheel", startAudio, { passive: true });
-document.addEventListener("touchstart", startAudio, { passive: true });
-document.addEventListener("keydown", startAudio);
-document.addEventListener("click", startAudio);
-
-// ===== TYPEWRITER =====
+/* ===== TYPEWRITER ===== */
 const text = `Hola NAO,
 
 Si estás leyendo este mensaje, es porque fuiste seleccionado para formar parte de un equipo especial.
 
 Nuestro objetivo es claro: infiltrarnos en una de las bóvedas más seguras del mundo, propiedad del mediático multimillonario Lennon Tusk.
 
-Gracias a un informante interno sabemos que el botín no es solo oro. Dentro de la bóveda del International Bank se esconde una minería de Bitcoins.
-
 Criptomoneda. Anonimato. Valor infinito.
-
-Uno de nuestros especialistas logró algo imposible: 60 minutos con los sistemas de seguridad fuera de línea. Después de eso… la policía llegará sin aviso.
-
-El plan es simple: resolver los desafíos, burlar la seguridad y llegar al botín antes de que el tiempo se agote.
 
 Somos profesionales.
 Este trabajo es pan comido.
 `;
 
-let i=0;
-const target=document.getElementById("text");
-function type(){
-  if(i<text.length){
-    target.innerHTML+=text.charAt(i++);
-    setTimeout(type,30);
+let i = 0;
+const target = document.getElementById("text");
+
+function type() {
+  if (i < text.length) {
+    target.innerHTML += text.charAt(i++);
+    setTimeout(type, 30);
   } else {
-    target.innerHTML+="<span></span>";
+    target.innerHTML += "<span></span>";
   }
 }
-type();
 
-// ===== EVENT COUNTDOWN =====
+function startTypewriter() {
+  type();
+}
+
+/* ===== COUNTDOWN ===== */
 const eventDate = new Date("2025-12-27T20:15:00-03:00");
-const eventTimer=document.getElementById("eventTimer");
+const eventTimer = document.getElementById("eventTimer");
 
-setInterval(()=>{
-  const diff = eventDate - new Date();
-  if(diff<=0){
-    eventTimer.textContent="LA MISIÓN HA COMENZADO";
-    return;
-  }
-  const d=Math.floor(diff/86400000);
-  const h=Math.floor(diff/3600000)%24;
-  const m=Math.floor(diff/60000)%60;
-  const s=Math.floor(diff/1000)%60;
-  eventTimer.textContent=`${d}d ${h}h ${m}m ${s}s`;
-},1000);
+function startCountdown() {
+  setInterval(() => {
+    const diff = eventDate - new Date();
+    if (diff <= 0) {
+      eventTimer.textContent = "LA MISIÓN HA COMENZADO";
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor(diff / 3600000) % 24;
+    const m = Math.floor(diff / 60000) % 60;
+    const s = Math.floor(diff / 1000) % 60;
+    eventTimer.textContent = `${d}d ${h}h ${m}m ${s}s`;
+  }, 1000);
+}
 
-// ===== SELF DESTRUCT =====
-let sd=60;
-const sdEl=document.getElementById("sd");
-const interval=setInterval(()=>{
-  sd--;
-  sdEl.textContent=sd;
-  if(sd<=0){
-    clearInterval(interval);
-    explode();
-  }
-},1000);
+/* ===== SELF DESTRUCT ===== */
+const sdEl = document.getElementById("sd");
 
-function explode(){
-  // Ocultamos el contenido JUSTO al iniciar el flash
+function startSelfDestruct() {
+  let sd = 60;
+  sdEl.textContent = sd;
+
+  const interval = setInterval(() => {
+    sd--;
+    sdEl.textContent = sd;
+    if (sd <= 0) {
+      clearInterval(interval);
+      explode();
+    }
+  }, 1000);
+}
+
+function explode() {
   document.getElementById("wrapper").classList.add("hidden");
-
   const boom = document.createElement("div");
   boom.className = "explosion";
   document.body.appendChild(boom);
 
-  // Cuando termina el flash, mostramos la pantalla final
   setTimeout(() => {
     document.body.innerHTML = `
       <div class="reload">
         <h1>💥 MENSAJE DESTRUIDO</h1>
         <button onclick="location.reload()">REINICIAR MISIÓN</button>
-      </div>
-    `;
-  }, 600); // exactamente lo que dura la animación
+      </div>`;
+  }, 600);
 }
 
-// ===== GOLD PARTICLES =====
-const canvas=document.getElementById("gold");
-const ctx=canvas.getContext("2d");
-canvas.width=innerWidth;
-canvas.height=innerHeight;
+/* ===== PARTICLES ===== */
+const canvas = document.getElementById("gold");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
-const particles=Array.from({length:120},()=>({
+const particles = Array.from({length:120},()=>({
   x:Math.random()*canvas.width,
   y:Math.random()*canvas.height,
   r:Math.random()*2,
@@ -353,18 +369,10 @@ function draw(){
 }
 draw();
 
+/* ===== MUTE ===== */
 const muteBtn = document.getElementById("muteBtn");
-
 muteBtn.addEventListener("click", () => {
-  const wasMuted = music.muted;
-
   music.muted = !music.muted;
-
-  // si estaba muteado y ahora no → aseguramos play
-  if (wasMuted && !music.muted) {
-    music.play().catch(() => {});
-  }
-
   muteBtn.textContent = music.muted ? "🔇" : "🔊";
   muteBtn.classList.toggle("muted", music.muted);
 });
