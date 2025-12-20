@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+<title>Tu misión comienza…</title>
+
+<style>
+:root {
+  --gold:#d4af37;
+  --bg:#0b0b0b;
+}
+
+body {
+  margin:0;
+  background:radial-gradient(circle at top,#1a1a1a,#000);
+  font-family:Arial,Helvetica,sans-serif;
+  color:#eee;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+canvas {
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
+
+.wrapper {
+  position:relative;
+  z-index:2;
+  max-width:720px;
+  margin:60px auto;
+  background:linear-gradient(180deg,#1a1a1a,#0c0c0c);
+  border-radius:14px;
+  box-shadow:0 0 40px rgba(0,0,0,.9);
+  overflow:hidden;
+}
+
+.header {
+  padding:40px;
+  text-align:center;
+  background:linear-gradient(135deg,#2b2b2b,#0f0f0f);
+  border-bottom:1px solid #222;
+}
+
+.header h1 {
+  margin:0;
+  color:var(--gold);
+  letter-spacing:4px;
+  animation:glitch 2.5s infinite;
+}
+
+@keyframes glitch {
+  50% { text-shadow:2px 0 red,-2px 0 cyan; }
+}
+
+.header p {
+  color:#aaa;
+  font-size:14px;
+}
+
+.content {
+  padding:40px;
+  line-height:1.7;
+  font-size:16px;
+}
+
+.typewriter span {
+  border-right:2px solid var(--gold);
+  animation:blink .8s infinite;
+}
+
+@keyframes blink {
+  50% { border-color:transparent; }
+}
+
+.gold { color:var(--gold); font-weight:bold; }
+
+.countdown {
+  margin:30px 0;
+  text-align:center;
+  font-size:22px;
+  letter-spacing:2px;
+}
+
+.selfdestruct {
+  margin-top:20px;
+  text-align:center;
+  color:#ff5555;
+  font-size:14px;
+}
+
+.image {
+  text-align:center;
+  margin-top:40px;
+}
+
+.image img {
+  width:90%;
+  border-radius:10px;
+  box-shadow:0 0 25px rgba(212,175,55,.35);
+}
+
+.footer {
+  padding:20px;
+  text-align:center;
+  font-size:12px;
+  color:#777;
+  background:#080808;
+  border-top:1px solid #222;
+}
+
+.explosion {
+  position:fixed;
+  inset:0;
+  background:white;
+  z-index:10;
+  animation:boom .6s forwards;
+}
+
+@keyframes boom {
+  to { opacity:0; }
+}
+
+.reload {
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:11;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  color:#fff;
+}
+
+.reload button {
+  margin-top:20px;
+  padding:12px 24px;
+  font-size:16px;
+  background:var(--gold);
+  border:none;
+  cursor:pointer;
+}
+#muteBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 20;
+  background: rgba(0,0,0,.6);
+  border: 1px solid #333;
+  color: var(--gold);
+  font-size: 20px;
+  padding: 10px 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0,0,0,.7);
+  transition: transform .2s, opacity .2s;
+}
+
+#muteBtn:hover {
+  transform: scale(1.1);
+}
+
+#muteBtn.muted {
+  opacity: .4;
+}
+
+.typewriter {
+  white-space: pre-line;
+}
+.hidden {
+  visibility: hidden;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="gold"></canvas>
+
+<audio id="music" src="mission.mp3" loop autoplay muted preload="auto"></audio>
+<button id="muteBtn" aria-label="Silenciar música">
+    🔊
+</button>
+
+<div class="wrapper" id="wrapper">
+  <div class="header">
+    <h1>MISIÓN CONFIDENCIAL</h1>
+    <p>Clasificación: Alto Riesgo</p>
+  </div>
+
+  <div class="content">
+    <p class="typewriter" id="text"></p>
+
+    <div class="countdown">
+      ⏳ Tiempo hasta la misión:<br>
+      <span id="eventTimer" class="gold"></span>
+    </div>
+
+    <div class="selfdestruct">
+      💣 Este mensaje se autodestruirá en <span id="sd">60</span> segundos
+    </div>
+
+    <div class="image">
+      <img src="Sofi.webp">
+    </div>
+  </div>
+
+  <div class="footer">
+    Mensaje generado de forma confidencial 🔒
+  </div>
+</div>
+
+<script>
+// ===== MUSIC =====
+const music = document.getElementById("music");
+let audioStarted = false;
+
+function startAudio() {
+  if (audioStarted) return;
+
+  const p = music.play();
+  if (p !== undefined) {
+    p.then(() => {
+      audioStarted = true;
+      cleanup();
+    }).catch(() => {});
+  }
+}
+
+function cleanup() {
+  document.removeEventListener("wheel", startAudio);
+  document.removeEventListener("touchstart", startAudio);
+  document.removeEventListener("keydown", startAudio);
+  document.removeEventListener("click", startAudio);
+}
+
+document.addEventListener("wheel", startAudio, { passive: true });
+document.addEventListener("touchstart", startAudio, { passive: true });
+document.addEventListener("keydown", startAudio);
+document.addEventListener("click", startAudio);
+
+// ===== TYPEWRITER =====
+const text = `Hola SAO,
+
+Si estás leyendo este mensaje, es porque fuiste seleccionado para formar parte de un equipo especial.
+
+Nuestro objetivo es claro: infiltrarnos en una de las bóvedas más seguras del mundo, propiedad del mediático multimillonario Lennon Tusk.
+
+Gracias a un informante interno sabemos que el botín no es solo oro. Dentro de la bóveda del International Bank se esconde una minería de Bitcoins.
+
+Criptomoneda. Anonimato. Valor infinito.
+
+Uno de nuestros especialistas logró algo imposible: 60 minutos con los sistemas de seguridad fuera de línea. Después de eso… la policía llegará sin aviso.
+
+El plan es simple: resolver los desafíos, burlar la seguridad y llegar al botín antes de que el tiempo se agote.
+
+Somos profesionales.
+Este trabajo es pan comido.
+`;
+
+let i=0;
+const target=document.getElementById("text");
+function type(){
+  if(i<text.length){
+    target.innerHTML+=text.charAt(i++);
+    setTimeout(type,30);
+  } else {
+    target.innerHTML+="<span></span>";
+  }
+}
+type();
+
+// ===== EVENT COUNTDOWN =====
+const eventDate = new Date("2025-12-27T20:15:00-03:00");
+const eventTimer=document.getElementById("eventTimer");
+
+setInterval(()=>{
+  const diff = eventDate - new Date();
+  if(diff<=0){
+    eventTimer.textContent="LA MISIÓN HA COMENZADO";
+    return;
+  }
+  const d=Math.floor(diff/86400000);
+  const h=Math.floor(diff/3600000)%24;
+  const m=Math.floor(diff/60000)%60;
+  const s=Math.floor(diff/1000)%60;
+  eventTimer.textContent=`${d}d ${h}h ${m}m ${s}s`;
+},1000);
+
+// ===== SELF DESTRUCT =====
+let sd=60;
+const sdEl=document.getElementById("sd");
+const interval=setInterval(()=>{
+  sd--;
+  sdEl.textContent=sd;
+  if(sd<=0){
+    clearInterval(interval);
+    explode();
+  }
+},1000);
+
+function explode(){
+  // Ocultamos el contenido JUSTO al iniciar el flash
+  document.getElementById("wrapper").classList.add("hidden");
+
+  const boom = document.createElement("div");
+  boom.className = "explosion";
+  document.body.appendChild(boom);
+
+  // Cuando termina el flash, mostramos la pantalla final
+  setTimeout(() => {
+    document.body.innerHTML = `
+      <div class="reload">
+        <h1>💥 MENSAJE DESTRUIDO</h1>
+        <button onclick="location.reload()">REINICIAR MISIÓN</button>
+      </div>
+    `;
+  }, 600); // exactamente lo que dura la animación
+}
+
+// ===== GOLD PARTICLES =====
+const canvas=document.getElementById("gold");
+const ctx=canvas.getContext("2d");
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+
+const particles=Array.from({length:120},()=>({
+  x:Math.random()*canvas.width,
+  y:Math.random()*canvas.height,
+  r:Math.random()*2,
+  s:Math.random()*.6+.2
+}));
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="rgba(212,175,55,.6)";
+  particles.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    p.y-=p.s;
+    if(p.y<0) p.y=canvas.height;
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+
+const muteBtn = document.getElementById("muteBtn");
+
+muteBtn.addEventListener("click", () => {
+  const wasMuted = music.muted;
+
+  music.muted = !music.muted;
+
+  // si estaba muteado y ahora no → aseguramos play
+  if (wasMuted && !music.muted) {
+    music.play().catch(() => {});
+  }
+
+  muteBtn.textContent = music.muted ? "🔇" : "🔊";
+  muteBtn.classList.toggle("muted", music.muted);
+});
+</script>
+
+</body>
+</html>
