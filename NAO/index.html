@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
 <title>Tu misión comienza…</title>
 
@@ -27,14 +28,17 @@ canvas {
 }
 
 .wrapper {
-  position:relative;
-  z-index:2;
-  max-width:720px;
-  margin:60px auto;
-  background:linear-gradient(180deg,#1a1a1a,#0c0c0c);
-  border-radius:14px;
-  box-shadow:0 0 40px rgba(0,0,0,.9);
-  overflow:hidden;
+  position: relative;
+  z-index: 2;
+
+  max-width: 720px;
+  width: calc(100% - 20px); /* 🔥 margen mínimo 10px por lado */
+
+  margin: 60px auto;
+  background: linear-gradient(180deg,#1a1a1a,#0c0c0c);
+  border-radius: 14px;
+  box-shadow: 0 0 40px rgba(0,0,0,.9);
+  overflow: hidden;
 }
 
 .header {
@@ -173,6 +177,7 @@ canvas {
 .hidden {
   visibility: hidden;
 }
+
 </style>
 </head>
 
