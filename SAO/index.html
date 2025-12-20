@@ -38,16 +38,39 @@ canvas {
 }
 
 .start-overlay button {
-  padding: 18px 36px;
-  font-size: 18px;
+  padding: 22px 42px;
+  font-size: 20px;
   letter-spacing: 2px;
   color: var(--gold);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  background: none;
-  font-weight: bolder;
-  animation: pulse 1.8s infinite;
+  background: linear-gradient(145deg, #1b1b1b, #0a0a0a);
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: pulse 1.8s infinite, glow 2.5s infinite;
+}
+
+/* Regalos animados */
+.gift {
+  font-size: 26px;
+  animation: bounce 1.4s infinite;
+}
+
+.gift:nth-child(1) { animation-delay: 0s; }
+.gift:nth-child(2) { animation-delay: .3s; }
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(-6deg); }
+}
+
+@keyframes glow {
+  50% {
+    box-shadow: 0 0 25px rgba(10,10,10,.6);
+  }
 }
 
 @keyframes pulse {
@@ -203,7 +226,11 @@ canvas {
 
 <!-- START -->
 <div id="startOverlay" class="start-overlay">
-  <button id="startBtn">CLICK PARA DESENCRIPTAR MENSAJE</button>
+  <button id="startBtn">
+    <span class="gift">🎁</span>
+    ABRÍ TU REGALO DE NAVIDAD
+    <span class="gift">🛍️</span>
+  </button>
 </div>
 
 <canvas id="gold"></canvas>
