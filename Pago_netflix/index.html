@@ -249,10 +249,18 @@
     if (sexo === "m") saludo = "Estimado";
     if (sexo === "f") saludo = "Estimada";
 
+    let invitado = "invitado/a";
+    if (sexo === "m") invitado = "invitado";
+    if (sexo === "f") invitado = "invitada";
+
+    let convocado = "convocado/a";
+    if (sexo === "m") convocado = "convocado";
+    if (sexo === "f") convocado = "convocada";
+
     const text = `${saludo} ${detective},
 
-No has sido invitado/a como espectador.
-Has sido convocado/a a participar en una investigación abierta.
+No has sido ${invitado} como espectador.
+Has sido ${convocado} a participar en una investigación abierta.
 
 Cada testimonio puede ocultar algo.
 Cada evidencia importa.
